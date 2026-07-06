@@ -1,4 +1,4 @@
-import streamlit as st 
+import streamlit as st
 import habit_function as hf
 import pandas as pd
 import datetime
