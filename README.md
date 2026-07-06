@@ -8,7 +8,7 @@ A practical web application built with **Python**, **Streamlit**, and **Pandas**
 
 ## Check out the App Demo:
 
-[![**Watch the Demo**](https://img.shields.io/badge/YouTube-Watch%20Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/SHzGUkm_MsU)
+[**Watch the Demo**](https://youtu.be/SHzGUkm_MsU)
 
 ### Try it yourself!
-👉 [**Click here to launch the app on Streamlit Cloud**]((https://habittrackerappbyfajer.streamlit.app/))
+[**Click here to launch the app on Streamlit Cloud**]((https://habittrackerappbyfajer.streamlit.app/))
