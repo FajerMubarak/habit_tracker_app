@@ -21,8 +21,10 @@ df =hf.read_file()
 if add_radio == '🏠 Dashboard':
         
     dates = hf.get_habit_dates()
+
     if not dates:
         st.warning("You haven't logged any completions yet! Go to 'Log completion' to start.")
+
     else:
         st.subheader("🗓️ Habit Completion Calendar View")
         events= []
@@ -30,9 +32,10 @@ if add_radio == '🏠 Dashboard':
             events.append({
             "title": "Completed",
             "start": str(d),
-                "end": str(d)})
+             "end": str(d)})
 
     calendar(events=events)
+  
     st.markdown("---")
     today = str(datetime.date.today())
 
@@ -119,7 +122,6 @@ elif add_radio == '✏️ Modify Habits' :
         habit_data = df[df['Habit'] == old_habit].iloc[0]
         
         st.markdown(f"### ⚙️ Modifying: **{old_habit}**")
-        st.subheader(f"Editing: {old_habit}")
     
         new_name = st.text_input("Habit Name", value=str(habit_data['Habit']))
         options = ["Daily", "Weekly", "Monthly"]
