@@ -202,7 +202,7 @@ def today_habits():
     df['Start Date'] = pd.to_datetime(df['Start Date']).dt.date
     
     for idx, row in df.iterrows():
-       if row['Start Date'] > today:
+        if row['Start Date'] > today:
             continue
             
         last_comp = str(row['Last Completed'])
