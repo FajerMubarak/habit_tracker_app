@@ -40,10 +40,13 @@ def complete_habit(habit):
         
         
         streak = int(val_streak) if pd.notna(val_streak) and str(val_streak).strip() != "" and str(val_streak) != "nan" else 0
+        
         best_streak = int(val_best_streak) if pd.notna(val_best_streak) and str(val_best_streak).strip() != "" and str(val_best_streak) != "nan" else 0
+        
         total_completions = int(val_total_completions) if pd.notna(val_total_completions) and str(val_total_completions).strip() != "" and  str(val_total_completions) != "nan" else 0
         
         all_dates = str(df.loc[condition, 'Last Completed'].values[0]).strip()
+        
         if all_dates == "" or all_dates == "nan":
             last_completed_date = ""
         else:
@@ -132,20 +135,6 @@ def edit_habit(old_habit ,new_habit= None, new_frequency= None , new_goal= None 
     df.to_csv("habitsFile.csv", index=False)
 
 
-
-def get_habit_dates():
-    df = read_file()
-    if df.empty:
-        return []
-    all_series = df['Last Completed'].astype(str).str.strip()
-    clean_series = all_series[(all_series != "") & (all_series != "nan")]
-    if clean_series.empty:
-        return []
-    all_series = clean_series.str.split(',').explode()
-    all_series = all_series.str.strip()
-    dates_list = pd.to_datetime(all_series, errors='coerce').dt.date.dropna().tolist()
-    return list(set(dates_list))
-
 def get_data():
     df = read_file()
     if df.empty:
@@ -202,3 +191,36 @@ def suggest_habit_stack():
     random_habit = other_habits.sample(1).iloc[0]["Habit"]
 
     return f"💡 You are very consistent with '{main_habit}'. Try doing '{random_habit}' immediately after it to build a stronger routine."
+
+def today_habits():
+    df = read_file()
+    if df.empty:
+        return pd.DataFrame()
+        
+    today = datetime.date.today()
+    valid_rows = []
+    df['Start Date'] = pd.to_datetime(df['Start Date']).dt.date
+    
+    for idx, row in df.iterrows():
+       if row['Start Date'] > today:
+            continue
+            
+        last_comp = str(row['Last Completed'])
+        
+        if str(today) in last_comp:
+            continue
+            
+        freq = row['Frequency']
+        if freq == "Daily":
+            valid_rows.append(row)
+        elif freq in ["Weekly", "Monthly"]:
+            if last_comp.strip() in ["", "nan"]:
+                valid_rows.append(row)
+            else:
+                all_dates = [d.strip() for d in last_comp.split(",") if d.strip()]
+                last_date = pd.to_datetime(all_dates[-1]).date()
+                days_passed = (today - last_date).days
+                if (freq == "Weekly" and days_passed >= 7) or (freq == "Monthly" and days_passed >= 30):
+                    valid_rows.append(row)
+                    
+    return pd.DataFrame(valid_rows) if valid_rows else pd.DataFrame()

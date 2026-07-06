@@ -4,10 +4,10 @@ import pandas as pd
 import datetime
 from streamlit_calendar import calendar
 
-st. title('Habit Tracker')
+st. title('🎯Habit Tracker')
 
 with st.sidebar:
-    add_radio = st.radio('Choose ',
+    add_radio = st.radio('Menu ',
         ['🏠 Dashboard',
          '➕ Add New Habit', 
         '✅ Log Completion' , 
@@ -20,32 +20,31 @@ df =hf.read_file()
 
 if add_radio == '🏠 Dashboard':
         
-    dates = hf.get_habit_dates()
+    events = []
 
-    if not dates:
+    if not df.empty: 
+        today_reminders = hf.today_habits()
+        if today_reminders.empty:
+            today_str = str(datetime.date.today())
+            events.append({
+                "title": "🎉 All Habits Completed!",
+                "start": today_str,
+                "allDay": True,
+                "backgroundColor": "#D4AF37"
+            })
+
+    if not events:
         st.warning("You haven't logged any completions yet! Go to 'Log completion' to start.")
-
     else:
         st.subheader("🗓️ Habit Completion Calendar View")
-        events= []
-        for d in dates:
-            events.append({
-            "title": "Completed",
-            "start": str(d),
-             "end": str(d)})
-
-    calendar(events=events)
+        calendar(events=events)
   
     st.markdown("---")
-    today = str(datetime.date.today())
-
-    for i, row in df.iterrows():
-        last_completed = str(row["Last Completed"])
-
-        if today not in last_completed:
+    reminders_df = hf.today_habits()
+    
+    if not reminders_df.empty:
+        for i, row in reminders_df.iterrows():
             st.toast(f"🔔 Reminder: Don't forget to complete '{row['Habit']}' today!")
-
-
            
 elif add_radio == '➕ Add New Habit' :
     st.subheader("✨ Create a New Positive Habit")
@@ -62,8 +61,13 @@ elif add_radio == '➕ Add New Habit' :
         if habit.strip() == "" or category.strip() == "":
             st.error("Please fill in both the Habit Name and Category before saving!", icon="⚠️")
         else:
-            hf.add_habit(habit,frequency,goal,category, str(start_date) ,  total_days)
-            st.success('Habit Added Successfully', icon="✅")
+            df = hf.read_file()
+            existing_habits = [str(h).strip().lower() for h in df['Habit']]
+            if habit.strip().lower() in existing_habits:
+                st.error(f"The habit '{habit}' already exists! Please choose a different name.", icon="🚫")
+            else:
+                hf.add_habit(habit,frequency,goal,category, str(start_date) ,  total_days)
+                st.success('Habit Added Successfully', icon="✅")
        
 
 
@@ -72,27 +76,23 @@ elif add_radio == '✅ Log Completion' :
     st.markdown("Track your progress for today! Select a habit you've finished and log it to keep your streak alive.")
     st.markdown("---")
     
+    active_habits = hf.today_habits()
     if df.empty:
         st.info("No habits found to log! Add some habits first.")
+    elif active_habits.empty:
+        st.balloons()
+        st.success("🎉 Awesome! You've completed all your habits for today!")
     else:
-        today = str(datetime.date.today())
-        active_habits = df[~df['Last Completed'].astype(str).str.contains(today)]
+        habit = st.selectbox('🎯 Choose a habit to log today:', active_habits["Habit"])
         
-        if active_habits.empty:
-            st.balloons()
-            st.success("🎉 Awesome! You've completed all your habits for today!")
-        else:
-            habit = st.selectbox('🎯 Choose a habit to log today:',active_habits["Habit"])
-    
-            if st.button('Complete Habit'):  
-                message = hf.complete_habit(habit)
-                if "You have already completed this habit today!" in message:
-                    st.warning(message, icon="⚠️")
-                else:
-                    st.success(f"Great job! '{habit}' logged successfully. Streak updated! 🔥", icon="✅")
-
-                    st.markdown("### 💡 Need an Idea? Try Habit Stacking!")
-                    st.success(hf.suggest_habit_stack())
+        if st.button('Complete Habit'):  
+            message = hf.complete_habit(habit)
+            if "You have already completed this habit today!" in message:
+                st.warning(message, icon="⚠️")
+            else:
+                st.success(f"Great job! '{habit}' logged successfully. Streak updated! 🔥", icon="✅")
+                st.markdown("### 💡 Need an Idea? Try Habit Stacking!")
+                st.success(hf.suggest_habit_stack())
         
 elif add_radio == '📊 Analytics & Insights' :
     st.subheader("📊 Performance & Statistics Dashboard")
